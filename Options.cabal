@@ -1,0 +1,12 @@
+Name: Options
+Version: 0.1
+Cabal-Version: >= 1.8
+Author: Juan Miguel Vilar
+Maintainer: jvilar@uji.es
+Stability: alpha
+Synopsis: A helper for writing the list of options descriptions for System.Console.GetOpt
+Build-Type: Simple
+
+Library
+  Exposed-Modules: Options
+  Build-Depends: base
