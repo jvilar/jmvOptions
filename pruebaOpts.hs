@@ -2,6 +2,7 @@ import Control.Exception(ioError, IOException(..))
 import Data.Maybe(fromMaybe)
 import System.Console.GetOpt(ArgDescr(..), ArgOrder(..), getOpt, usageInfo, OptDescr (..))
 import System.Environment(getArgs)
+import System.IO(openFile, IOMode(..))
 
 import Options
 
@@ -30,3 +31,5 @@ main = do
                             putStrLn $ "Options: " ++ show o
                             putStrLn $ "Arguments: " ++ show n
             (_, _, e) -> ioError (userError $ concat e)
+         putStrLn "Opciones de pruebaOpts.rc"
+         print =<< optionsFromHandle options =<< openFile "pruebaOpts.rc" ReadMode

@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, OverloadedStrings, MultiParamTypeClasses,
+             TupleSections, TypeSynonymInstances #-}
 -- |A wrapper for accessing to System.Console.GetOpt.
 module Options
 (
@@ -30,11 +31,21 @@ module System.Console.GetOpt,
 -- >                'L' ~: "libdir"          ==> ReqArg LibDir "DIR" ~: "library directory"
 
 -- *The functions and operators
-processOptions, (==>), (~:)
+optionsFromHandle, processOptions, (==>), (~:)
 )
 where
 
+import Control.Applicative((<$>))
+import Control.Arrow((***))
+import Control.Monad(forM)
+import Data.Either(partitionEithers)
+import Data.Map(Map)
+import qualified Data.Map as M
+import Data.Text(Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import System.Console.GetOpt(ArgDescr(..), ArgOrder(..), getOpt, usageInfo, OptDescr (..))
+import System.IO(Handle)
 
 data OptionProcessor a b = OptionProcessor { process :: [OptDescr a] -> ([OptDescr a], b)}
 
@@ -106,3 +117,38 @@ f ==> d = let
 -- do notation using the function 'addOption' or the operators '==>' and '~:'.
 processOptions :: OptionProcessor a () -> [ OptDescr a ]
 processOptions p = fst $ process p []
+
+-- |Given a list of 'OptDescr', use it for processing the contents of
+-- a text file. Each line of the file can begin with one of the long
+-- options. If it has any argument, it is written after a colon. Empty
+-- lines and those beginning with a # are ignored. It returns the
+-- lists of the values that matched and the lines that didn't.
+optionsFromHandle :: [ OptDescr a ] -> Handle -> IO ([a], [String])
+optionsFromHandle opts h = do
+                             ls <- (map T.strip . T.lines) <$> TIO.hGetContents h
+                             return . partitionEithers $ do
+                               l <- clean ls
+                               return $ maybe (Right $ T.unpack l) Left $ processLine descs l
+                           where descs = M.fromList $ do
+                                             Option _ ls desc _ <- opts
+                                             map ((, desc).T.pack) ls
+
+clean :: [Text] -> [Text]
+clean = filter (\t -> not (T.null t) && T.head t /= '#')
+
+splitArg :: Text -> (Text, String)
+splitArg = (T.strip *** \a -> if T.null a then "" else T.unpack . T.strip . T.tail $ a) . T.breakOn ":"
+
+processLine :: Map Text (ArgDescr a) -> Text -> Maybe a
+processLine descs l = do
+                        let (opt, arg) = splitArg l
+                        desc <- M.lookup opt descs
+                        if null arg
+                        then case desc of
+                                NoArg x -> return x
+                                ReqArg _ _ -> Nothing
+                                OptArg f _ -> return $ f Nothing
+                        else case desc of
+                                NoArg _ -> Nothing
+                                ReqArg f _ -> return $ f arg
+                                OptArg f _ -> return . f $ Just arg
