@@ -9,4 +9,4 @@ Build-Type: Simple
 
 Library
   Exposed-Modules: Options
-  Build-Depends: base
+  Build-Depends: base, containers, text

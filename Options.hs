@@ -144,11 +144,11 @@ processLine descs l = do
                         let (opt, arg) = splitArg l
                         desc <- M.lookup opt descs
                         if null arg
-                        then case desc of
+                         then case desc of
                                 NoArg x -> return x
                                 ReqArg _ _ -> Nothing
                                 OptArg f _ -> return $ f Nothing
-                        else case desc of
+                         else case desc of
                                 NoArg _ -> Nothing
                                 ReqArg f _ -> return $ f arg
                                 OptArg f _ -> return . f $ Just arg
