@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances, OverloadedStrings, MultiParamTypeClasses,
              TupleSections, TypeSynonymInstances #-}
 -- |A wrapper for accessing to System.Console.GetOpt.
-module Options
+module System.Console.JMVOptions
 (
 module System.Console.GetOpt,
 -- *Accessing options

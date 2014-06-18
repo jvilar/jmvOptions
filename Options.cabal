@@ -1,4 +1,4 @@
-Name: Options
+Name: jmvOptions
 Version: 0.1
 Cabal-Version: >= 1.8
 Author: Juan Miguel Vilar
@@ -8,5 +8,5 @@ Synopsis: A helper for writing the list of options descriptions for System.Conso
 Build-Type: Simple
 
 Library
-  Exposed-Modules: Options
+  Exposed-Modules: System.Console.JMVOptions
   Build-Depends: base, containers, text
