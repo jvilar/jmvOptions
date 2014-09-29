@@ -37,7 +37,7 @@ where
 
 import Control.Applicative((<$>))
 import Control.Arrow((***))
-import Control.Monad(forM)
+import Control.Monad.State(State, modify, execState)
 import Data.Either(partitionEithers)
 import Data.Map(Map)
 import qualified Data.Map as M
@@ -47,18 +47,10 @@ import qualified Data.Text.IO as TIO
 import System.Console.GetOpt(ArgDescr(..), ArgOrder(..), getOpt, usageInfo, OptDescr (..))
 import System.IO(Handle)
 
-data OptionProcessor a b = OptionProcessor { process :: [OptDescr a] -> ([OptDescr a], b)}
-
-instance Monad (OptionProcessor a) where
-  p >>= f = OptionProcessor $ \ops -> let
-                                        (ops', a) = process p ops
-                                      in process (f a) ops'
-
-  return v = OptionProcessor $ \ops -> (ops, v)
-
+type OptionProcessor a = State [OptDescr a]
 
 addOption :: OptDescr a -> OptionProcessor a ()
-addOption op = OptionProcessor $ \ops -> (ops++ [op], ())
+addOption op = modify (++[op])
 
 class Flags t where
     makeFlags :: t -> ([Char], [String])
@@ -116,7 +108,7 @@ f ==> d = let
 -- |Build a list of 'OptDescr' apt for 'GetOpt'. The input can be written in
 -- do notation using the function 'addOption' or the operators '==>' and '~:'.
 processOptions :: OptionProcessor a () -> [ OptDescr a ]
-processOptions p = fst $ process p []
+processOptions p = execState p []
 
 -- |Given a list of 'OptDescr', use it for processing the contents of
 -- a text file. Each line of the file can begin with one of the long

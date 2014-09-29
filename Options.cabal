@@ -9,4 +9,4 @@ Build-Type: Simple
 
 Library
   Exposed-Modules: System.Console.JMVOptions
-  Build-Depends: base, containers, text
+  Build-Depends: base, containers, mtl, text
