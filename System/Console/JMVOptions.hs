@@ -3,12 +3,12 @@
 -- |A wrapper for accessing to System.Console.GetOpt.
 module System.Console.JMVOptions
 (
-module System.Console.GetOpt,
 -- *Accessing options
 -- |The idea is to create a 'Monad' in which the do notation can be used to enter
 -- the different options and create the list of 'OptDescr' that is passed to 'getOpt'.
 -- To illustrate this usage, let's rewrite an example from the documentation of
 -- 'System.Console.GetOpt':
+--
 -- The original list is constructed as follows:
 --
 -- >    options :: [OptDescr Flag]
@@ -31,12 +31,16 @@ module System.Console.GetOpt,
 -- >                'L' ~: "libdir"          ==> ReqArg LibDir "DIR" ~: "library directory"
 
 -- *The functions and operators
-optionsFromHandle, processOptions, (==>), (~:)
+optionsFromHandle, processOptions, (==>), (~:),
+
+-- *Reexported modules
+module System.Console.GetOpt
 )
 where
 
 import Control.Applicative((<$>))
 import Control.Arrow((***))
+import Control.Monad.Writer(Writer, execWriter, tell)
 import Control.Monad.State(State, modify, execState)
 import Data.Either(partitionEithers)
 import Data.Map(Map)
@@ -47,10 +51,10 @@ import qualified Data.Text.IO as TIO
 import System.Console.GetOpt(ArgDescr(..), ArgOrder(..), getOpt, usageInfo, OptDescr (..))
 import System.IO(Handle)
 
-type OptionProcessor a = State [OptDescr a]
+type OptionProcessor a = Writer [OptDescr a]
 
 addOption :: OptDescr a -> OptionProcessor a ()
-addOption op = modify (++[op])
+addOption op = tell [op]
 
 class Flags t where
     makeFlags :: t -> ([Char], [String])
@@ -108,7 +112,7 @@ f ==> d = let
 -- |Build a list of 'OptDescr' apt for 'GetOpt'. The input can be written in
 -- do notation using the function 'addOption' or the operators '==>' and '~:'.
 processOptions :: OptionProcessor a () -> [ OptDescr a ]
-processOptions p = execState p []
+processOptions = execWriter
 
 -- |Given a list of 'OptDescr', use it for processing the contents of
 -- a text file. Each line of the file can begin with one of the long
