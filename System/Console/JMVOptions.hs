@@ -41,7 +41,6 @@ where
 import Control.Applicative((<$>))
 import Control.Arrow((***))
 import Control.Monad.Writer(Writer, execWriter, tell)
-import Control.Monad.State(State, modify, execState)
 import Data.Either(partitionEithers)
 import Data.Map(Map)
 import qualified Data.Map as M
@@ -107,6 +106,7 @@ f ==> d = let
           in addOption $ Option cs ss arg help
 
 -- |A synonym for '(,)' useful for writing tuples without the parenthesis.
+(~:) :: a -> b -> (a, b)
 (~:) = (,)
 
 -- |Build a list of 'OptDescr' apt for 'GetOpt'. The input can be written in
